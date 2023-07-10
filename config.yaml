@@ -1,0 +1,82 @@
+version: STgram-MFN
+description: STgram-MFN
+time_version: Ture # if set ture, add time information in version
+save_version_files: False # if set true, save each version files in runs
+save_version_file_patterns:
+  - "*.py"
+  - "*.yaml"
+pass_dirs:
+  - '.'
+  - '_'
+  - 'runs'
+  - 'results'
+
+# filepath
+train_dirs:
+  - ../datasets/Dcase2020/fan/train
+  - ../datasets/Dcase2020/pump/train
+  - ../datasets/Dcase2020/slider/train
+  - ../datasets/Dcase2020/ToyCar/train
+  - ../datasets/Dcase2020/ToyConveyor/train
+  - ../datasets/Dcase2020/valve/train
+add_dirs:
+  - ../datasets/Dcase2020eval/fan/train
+  - ../datasets/Dcase2020eval/pump/train
+  - ../datasets/Dcase2020eval/slider/train
+  - ../datasets/Dcase2020eval/ToyCar/train
+  - ../datasets/Dcase2020eval/ToyConveyor/train
+  - ../datasets/Dcase2020eval/valve/train
+valid_dirs:
+  - ../datasets/Dcase2020/fan/test
+  - ../datasets/Dcase2020/pump/test
+  - ../datasets/Dcase2020/slider/test
+  - ../datasets/Dcase2020/ToyCar/test
+  - ../datasets/Dcase2020/ToyConveyor/test
+  - ../datasets/Dcase2020/valve/test
+test_dirs:
+  - ../datasets/Dcase2020eval/fan/test
+  - ../datasets/Dcase2020eval/pump/test
+  - ../datasets/Dcase2020eval/slider/test
+  - ../datasets/Dcase2020eval/ToyCar/test
+  - ../datasets/Dcase2020eval/ToyConveyor/test
+  - ../datasets/Dcase2020eval/valve/test
+
+result_dir: ./results
+# audio preprocess
+sr: 16000
+n_fft: 1024
+n_mels: 128
+win_length: 1024
+hop_length: 512
+power: 2.0
+secs: 10
+
+cuda: True
+# train
+random_seed: 42
+epochs: 300
+batch_size: 128
+num_workers: 0
+lr: 1e-4
+device_ids:
+  - 2
+  - 3
+valid_every_epochs: 10
+early_stop_epochs: -1
+start_save_model_epochs: 300
+save_model_interval_epochs: 1
+start_scheduler_epoch: 20
+start_valid_epoch: 0
+
+# loss
+use_arcface: True
+m: 0.7
+s: 30
+sub_center: 1
+
+# anomaly score
+gmm_n: False # if set as a int value, use gmm to fit feature for each ID and estimate anomaly score
+
+
+# test
+load_epoch: False # it will test your model if set a value, e.g. best, 10, 100
