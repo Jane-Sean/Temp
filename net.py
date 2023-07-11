@@ -164,6 +164,8 @@ class TgramNet(nn.Module):
 
 
 class STgramMFN(nn.Module):
+    # net = STgramMFN(num_classes=args.num_classes, use_arcface=args.use_arcface,
+    #                     m=float(args.m), s=float(args.s), sub=args.sub_center)
     def __init__(self, num_classes,
                  c_dim=128,
                  win_len=1024,
@@ -181,9 +183,11 @@ class STgramMFN(nn.Module):
         return self.tgramnet(x_wav)
 
     def forward(self, x_wav, x_mel, label=None):
+        # 提特征
         x_wav, x_mel = x_wav.unsqueeze(1), x_mel.unsqueeze(1)
         x_t = self.tgramnet(x_wav).unsqueeze(1)
-        x = torch.cat((x_mel, x_t), dim=1)
+        x = torch.cat((x_mel, x_t), dim=1)    # 拼接 tf-domain 和 t-domain 的特征
+        # 做分类
         out, feature = self.mobilefacenet(x, label)
         if self.arcface:
             out = self.arcface(feature, label)

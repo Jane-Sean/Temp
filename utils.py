@@ -42,12 +42,19 @@ def save_csv(file_path, data: list):
         writer.writerows(data)
 
 
-# 复制目标文件到目标路径
 def copy_files(root_dir, target_dir, file_patterns, pass_dirs=['.git']):
+    """
+    复制目标文件到目标路径
+    :param root_dir: 根目录
+    :param target_dir: 目标目录路径
+    :param file_patterns: 要存储的文件，config 中已配置好: *.py & *.yaml
+    :param pass_dirs: 跳过不存的目录部分
+    :return: None
+    """
     # print(root_dir, root_dir.split(sep), [name for name in root_dir.split(sep) if name != ''])
     os.makedirs(target_dir, exist_ok=True)
     len_root = len([name for name in root_dir.split(sep) if name != ''])
-    for root, _, _ in os.walk(root_dir):
+    for root, _, _ in os.walk(root_dir):     # 分别表示 #当前正在访问的文件夹路径 #该文件夹下的子目录名list #该文件夹下的文件list
         cur_dir = sep.join(root.split(sep)[len_root:])
         first_dir_name = cur_dir.split(sep)[0]
         if first_dir_name != '':
@@ -61,7 +68,7 @@ def copy_files(root_dir, target_dir, file_patterns, pass_dirs=['.git']):
             files += sorted(glob.glob(file_path_pattern))
         for file in files:
             target_path_file = os.path.join(target_path, os.path.split(file)[-1])
-            shutil.copyfile(file, target_path_file)
+            shutil.copyfile(file, target_path_file)    # 从 file copy 到 target_path_file
 
 
 def save_model_state_dict(file_path, epoch=None, net=None, optimizer=None):

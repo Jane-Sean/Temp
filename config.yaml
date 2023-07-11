@@ -1,6 +1,6 @@
 version: STgram-MFN
 description: STgram-MFN
-time_version: False # if set ture, add time information in version
+time_version: Ture # if set ture, add time information in version
 save_version_files: False # if set true, save each version files in runs
 save_version_file_patterns:
   - "*.py"
@@ -10,35 +10,37 @@ pass_dirs:
   - '_'
   - 'runs'
   - 'results'
+
 # filepath
 train_dirs:
-  - /data1/zmd/datasets/Dcase2020/fan/train
-  - /data1/zmd/datasets/Dcase2020/pump/train
-  - /data1/zmd/datasets/Dcase2020/slider/train
-  - /data1/zmd/datasets/Dcase2020/ToyCar/train
-  - /data1/zmd/datasets/Dcase2020/ToyConveyor/train
-  - /data1/zmd/datasets/Dcase2020/valve/train
+  - ../datasets/Dcase2020/fan/train
+  - ../datasets/Dcase2020/pump/train
+  - ../datasets/Dcase2020/slider/train
+  - ../datasets/Dcase2020/ToyCar/train
+  - ../datasets/Dcase2020/ToyConveyor/train
+  - ../datasets/Dcase2020/valve/train
 add_dirs:
-  - /data1/zmd/datasets/Dcase2020eval/fan/train
-  - /data1/zmd/datasets/Dcase2020eval/pump/train
-  - /data1/zmd/datasets/Dcase2020eval/slider/train
-  - /data1/zmd/datasets/Dcase2020eval/ToyCar/train
-  - /data1/zmd/datasets/Dcase2020eval/ToyConveyor/train
-  - /data1/zmd/datasets/Dcase2020eval/valve/train
+  - ../datasets/Dcase2020eval/fan/train
+  - ../datasets/Dcase2020eval/pump/train
+  - ../datasets/Dcase2020eval/slider/train
+  - ../datasets/Dcase2020eval/ToyCar/train
+  - ../datasets/Dcase2020eval/ToyConveyor/train
+  - ../datasets/Dcase2020eval/valve/train
 valid_dirs:
-  - /data1/zmd/datasets/Dcase2020/fan/test
-  - /data1/zmd/datasets/Dcase2020/pump/test
-  - /data1/zmd/datasets/Dcase2020/slider/test
-  - /data1/zmd/datasets/Dcase2020/ToyCar/test
-  - /data1/zmd/datasets/Dcase2020/ToyConveyor/test
-  - /data1/zmd/datasets/Dcase2020/valve/test
+  - ../datasets/Dcase2020/fan/test
+  - ../datasets/Dcase2020/pump/test
+  - ../datasets/Dcase2020/slider/test
+  - ../datasets/Dcase2020/ToyCar/test
+  - ../datasets/Dcase2020/ToyConveyor/test
+  - ../datasets/Dcase2020/valve/test
 test_dirs:
-  - /data1/zmd/datasets/Dcase2020eval/fan/test
-  - /data1/zmd/datasets/Dcase2020eval/pump/test
-  - /data1/zmd/datasets/Dcase2020eval/slider/test
-  - /data1/zmd/datasets/Dcase2020eval/ToyCar/test
-  - /data1/zmd/datasets/Dcase2020eval/ToyConveyor/test
-  - /data1/zmd/datasets/Dcase2020eval/valve/test
+  - ../datasets/Dcase2020eval/fan/test
+  - ../datasets/Dcase2020eval/pump/test
+  - ../datasets/Dcase2020eval/slider/test
+  - ../datasets/Dcase2020eval/ToyCar/test
+  - ../datasets/Dcase2020eval/ToyConveyor/test
+  - ../datasets/Dcase2020eval/valve/test
+
 result_dir: ./results
 # audio preprocess
 sr: 16000
@@ -57,8 +59,8 @@ batch_size: 128
 num_workers: 0
 lr: 1e-4
 device_ids:
-  - 6
-  - 7
+  - 2
+  - 3
 valid_every_epochs: 10
 early_stop_epochs: -1
 start_save_model_epochs: 300

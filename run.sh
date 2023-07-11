@@ -1,4 +1,4 @@
-conda create -n stgram_mfn python=3.7
+pyconda create -n stgram_mfn python=3.7
 conda activate stgram_mfn
 # set tsinghua source
 #pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple

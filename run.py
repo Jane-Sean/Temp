@@ -12,7 +12,7 @@ from trainer import Trainer
 from dataset import ASDDataset
 import utils
 
-sep = os.sep
+sep = os.sep  # os 文件路径的分隔符
 
 def main(args):
     # set random seed
@@ -35,18 +35,19 @@ def main(args):
         train_file_list.extend(utils.get_filename_list(train_dir))
     train_dataset = ASDDataset(args, train_file_list, load_in_memory=False)
     train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
-                                  shuffle=True, num_workers=args.num_workers)
+                                  shuffle=False, num_workers=args.num_workers)    # num_workers：是否多线程数字加载，默认 0
     # set model
     args.num_classes = len(args.meta2label.keys())
     args.logger.info(f'Num classes: {args.num_classes}')
     net = STgramMFN(num_classes=args.num_classes, use_arcface=args.use_arcface,
                     m=float(args.m), s=float(args.s), sub=args.sub_center)
     if args.dp:
-        net = nn.DataParallel(net, device_ids=args.device_ids)
+        net = nn.DataParallel(net, device_ids=args.device_ids)  # 并行训练
     net = net.to(args.device)
     # optimizer & scheduler
     optimizer = torch.optim.Adam(net.parameters(), lr=float(args.lr))
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs, eta_min=0.1*float(args.lr))
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.epochs,
+                                                           eta_min=0.1 * float(args.lr))  # TODO: 退火策略？需要学习一下lr的调整策略
     # trainer
     trainer = Trainer(args=args,
                       net=net,
@@ -74,6 +75,7 @@ def run():
     for key, value in params.items():
         parser.add_argument(f'--{key}', default=value, type=utils.set_type)
     args = parser.parse_args()
+
     # init logger and writer
     time_str = time.strftime('%Y-%m-%d-%H', time.localtime(time.time()))
     args.version = f'STgram-MFN(m={args.m},s={args.s})'
@@ -81,14 +83,22 @@ def run():
     log_dir = f'runs/{args.version}'
     writer = SummaryWriter(log_dir=log_dir)
     logger = utils.get_logger(filename=os.path.join(log_dir, 'running.log'))
+
     # save version files
-    if args.save_version_files: utils.save_load_version_files(log_dir, args.save_version_file_patterns, args.pass_dirs)
+    if args.save_version_files:
+        utils.save_load_version_files(log_dir, args.save_version_file_patterns, args.pass_dirs)    # todo：为什么存两遍？
+
     # run
     args.writer, args.logger = writer, logger
     args.logger.info(args.version)
     main(args)
+
     # save config file
-    utils.save_yaml_file(file_path=os.path.join(log_dir, 'config.yaml'), data=vars(args))
+    args_dict = vars(args)
+    args_dict['device'] = str(args_dict['device'])
+    args_dict['logger'] = str(args_dict['logger'])
+    args_dict['writer'] = str(args_dict['writer'])
+    utils.save_yaml_file(file_path=os.path.join(log_dir, 'config.yaml'), data=args_dict)
 
 
 if __name__ == '__main__':

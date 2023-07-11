@@ -19,8 +19,9 @@ class Trainer:
         self.scheduler = kwargs['scheduler']
         self.writer = self.args.writer
         self.logger = self.args.logger
-        self.criterion = ASDLoss().to(self.args.device)
+        self.criterion = ASDLoss().to(self.args.device)    # 损失函数是自己写的，仿佛就是包装了一下交叉熵（？
         self.transform = kwargs['transform']
+
     def train(self, train_loader):
         # self.test(save=False)
         model_dir = os.path.join(self.writer.log_dir, 'model')
@@ -61,7 +62,7 @@ class Trainer:
             self.logger.info(f'Epoch-{epoch}\tloss:{avg_loss:.5f}')
             # valid
             if (epoch - start_valid_epoch) % valid_every_epochs == 0 and epoch >= start_valid_epoch:
-                avg_auc, avg_pauc = self.test(save=False, gmm_n=False)
+                avg_auc, avg_pauc = self.test(save=False, gmm_n=False)    #todo
                 self.writer.add_scalar(f'auc', avg_auc, epoch)
                 self.writer.add_scalar(f'pauc', avg_pauc, epoch)
                 if avg_auc + avg_pauc >= best_metric:
@@ -98,7 +99,9 @@ class Trainer:
         self.net.eval()
         net = self.net.module if self.args.dp else self.net
         print('\n' + '=' * 20)
-        for index, (target_dir, train_dir) in enumerate(zip(sorted(self.args.valid_dirs), sorted(self.args.train_dirs))):
+
+        for index, (target_dir, train_dir) in enumerate(
+                zip(sorted(self.args.valid_dirs), sorted(self.args.train_dirs))):
             machine_type = target_dir.split('/')[-2]
             # result csv
             csv_lines.append([machine_type])
@@ -106,6 +109,7 @@ class Trainer:
             performance = []
             # get machine list
             machine_id_list = utils.get_machine_id_list(target_dir)
+
             for id_str in machine_id_list:
                 meta = machine_type + '-' + id_str
                 label = self.args.meta2label[meta]
@@ -118,7 +122,8 @@ class Trainer:
                     features = self.get_latent_features(train_files)
                     means_init = net.arcface.weight[label * gmm_n: (label + 1) * gmm_n, :].detach().cpu().numpy() \
                         if self.args.use_arcface and (gmm_n == self.args.sub_center) else None
-                    gmm = self.fit_GMM(features, n_components=gmm_n, means_init=means_init)
+                    gmm = self.fit_GMM(features, n_components=gmm_n, means_init=means_init)    # test()
+
                 for file_idx, file_path in enumerate(test_files):
                     x_wav, x_mel, label = self.transform(file_path)
                     x_wav, x_mel = x_wav.unsqueeze(0).float().to(self.args.device), x_mel.unsqueeze(0).float().to(
@@ -145,19 +150,18 @@ class Trainer:
             # calculate averages for AUCs and pAUCs
             averaged_performance = np.mean(np.array(performance, dtype=float), axis=0)
             mean_auc, mean_p_auc = averaged_performance[0], averaged_performance[1]
-            self.logger.info(f'{machine_type}\t\tAUC: {mean_auc*100:.3f}\tpAUC: {mean_p_auc*100:.3f}')
+            self.logger.info(f'{machine_type}\t\tAUC: {mean_auc * 100:.3f}\tpAUC: {mean_p_auc * 100:.3f}')
             csv_lines.append(['Average'] + list(averaged_performance))
             sum_auc += mean_auc
             sum_pauc += mean_p_auc
             num += 1
         avg_auc, avg_pauc = sum_auc / num, sum_pauc / num
         csv_lines.append(['Total Average', avg_auc, avg_pauc])
-        self.logger.info(f'Total average:\t\tAUC: {avg_auc*100:.3f}\tpAUC: {avg_pauc*100:.3f}')
+        self.logger.info(f'Total average:\t\tAUC: {avg_auc * 100:.3f}\tpAUC: {avg_pauc * 100:.3f}')
         result_path = os.path.join(result_dir, 'result.csv')
         if save:
             utils.save_csv(result_path, csv_lines)
         return avg_auc, avg_pauc
-
 
     def evaluator(self, save=True, gmm_n=False):
         result_dir = os.path.join('./evaluator/teams', self.args.version)
@@ -185,7 +189,7 @@ class Trainer:
                     means_init = net.arcface.weight[label * gmm_n: (label + 1) * gmm_n, :].detach().cpu().numpy() \
                         if self.args.use_arcface and (gmm_n == self.args.sub_center) else None
                     # means_init = None
-                    gmm = self.fit_GMM(features, n_components=gmm_n, means_init=means_init)
+                    gmm = self.fit_GMM(features, n_components=gmm_n, means_init=means_init)    # evaluator()
                 for file_idx, file_path in enumerate(test_files):
                     x_wav, x_mel, label = self.transform(file_path)
                     x_wav, x_mel = x_wav.unsqueeze(0).float().to(self.args.device), x_mel.unsqueeze(0).float().to(
@@ -205,25 +209,35 @@ class Trainer:
 
     def get_latent_features(self, train_files):
         pbar = tqdm(enumerate(train_files), total=len(train_files))
+        # 1. 设置模型到 eval 模式
         self.net.eval()
+        # 选模型
         classifier = self.net.module if self.args.dp else self.net
         features = []
+        # 2. 遍历文件    todo：为什么不直接 dataloader？（）
         for file_idx, file_path in pbar:
             x_wav, x_mel, label = self.transform(file_path)
             x_wav, x_mel = x_wav.unsqueeze(0).float().to(self.args.device), x_mel.unsqueeze(0).float().to(
                 self.args.device)
             label = torch.tensor([label]).long().to(self.args.device)
+            # 3. 得到分类后的数据特征
             with torch.no_grad():
                 _, feature, _ = classifier(x_wav, x_mel, label)
             if file_idx == 0:
                 features = feature.cpu()
             else:
                 features = torch.cat((features.cpu(), feature.cpu()), dim=0)
-        if self.args.use_arcface: features = F.normalize(features)
+        if self.args.use_arcface: features = F.normalize(features)    # 如果使用 arcface 则执行
         return features.numpy()
 
-
     def fit_GMM(self, data, n_components, means_init=None):
+        """
+        get the fixed_gmm
+        :param data: original data
+        :param n_components:  多元高斯的成分
+        :param means_init:  初始 GMM 的参数值，默认 None
+        :return: gmm
+        """
         print('=' * 40)
         print('Fit GMM in train data for test...')
         np.random.seed(self.args.seed)

@@ -13,14 +13,15 @@ class ASDDataset(Dataset):
         self.wav2mel = utils.Wave2Mel(sr=args.sr, power=args.power,
                                       n_fft=args.n_fft, n_mels=args.n_mels,
                                       win_length=args.win_length, hop_length=args.hop_length)
-        self.load_in_memory = load_in_memory
-        self.data_list = [self.transform(filename) for filename in file_list] if load_in_memory else []
+        self.load_in_memory = load_in_memory    # 控制在生成时把 wav 转到 st 域还是在加载时再转
+        self.data_list = [self.transform(filename) for filename in file_list] if load_in_memory else []    # 如果要加载，则遍历 file_list 中文件，transform 后加入 data_list 中；否则空
 
     def __getitem__(self, item):
         data_item = self.data_list[item] if self.load_in_memory else self.transform(self.file_list[item])
         return data_item
 
     def transform(self, filename):
+        """转化文件为可用的信息，含 machine、label、id、wav、mel, 返回值包括 x_wav, x_mel, label"""
         machine = filename.split('/')[-3]
         id_str = re.findall('id_[0-9][0-9]', filename)[0]
         label = self.args.meta2label[machine+'-'+id_str]
